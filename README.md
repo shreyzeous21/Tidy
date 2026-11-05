@@ -39,6 +39,19 @@
 
 ---
 
+## Watch the launch film
+
+<p align="center">
+  <video controls poster="media/tidy-launch.jpg" width="80%" style="max-width:960px;border-radius:12px;border:1px solid rgba(0,0,0,.1)">
+    <source src="media/tidy-launch.mp4" type="video/mp4" />
+    Your browser doesn't support embedded video — <a href="media/tidy-launch.mp4">download the MP4</a>.
+  </video>
+</p>
+
+<p align="center">
+  <em>20 seconds. A quieter file manager.</em>
+</p>
+
 ## Screenshots
 
 <p align="center">

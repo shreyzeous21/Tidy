@@ -14,6 +14,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { tidy, unwrap, messageOf } from '@/lib/api'
+import { ToolbarLabel, ToolbarSpacer, ViewToolbar } from '@/components/common/ViewToolbar'
 import { shortenHome } from '@/lib/format'
 import { ACCENTS, ACCENT_IDS, applyAccent } from '@/lib/theme'
 import { useAppStore, applyTheme } from '@/stores/app-store'
@@ -89,8 +90,13 @@ export function SettingsView() {
   }
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-5">
-      <div className="w-full space-y-7">
+    <div className="flex h-full min-h-0 flex-col">
+      <ViewToolbar>
+        <ToolbarLabel>{appInfo ? `Tidy v${appInfo.versions.app}` : 'Tidy'}</ToolbarLabel>
+        <ToolbarSpacer />
+      </ViewToolbar>
+
+      <div className="min-h-0 w-full flex-1 space-y-7 overflow-y-auto px-4 py-4">
         <section>
           <h2 className="mb-2 text-[13px] font-semibold">Appearance</h2>
           <div className="flex rounded-md border border-border p-0.5" role="radiogroup" aria-label="Theme">

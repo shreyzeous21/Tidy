@@ -3,6 +3,7 @@ import { FolderOpen, HardDrive, Clock, Loader2, Image as ImageIcon, History } fr
 import { toast } from 'sonner'
 import { FileIcon } from '@/components/common/FileIcon'
 import { EmptyState, PermissionNotice } from '@/components/common/EmptyState'
+import { ToolbarLabel, ToolbarSpacer, ViewToolbar } from '@/components/common/ViewToolbar'
 import { tidy, unwrap, messageOf, codeOf } from '@/lib/api'
 import { formatBytes, formatDate, formatRelative, shortenHome } from '@/lib/format'
 import { useAppStore } from '@/stores/app-store'
@@ -91,8 +92,15 @@ export function HomeView() {
   }
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-5">
-      <div className="w-full space-y-7">
+    <div className="flex h-full min-h-0 flex-col">
+      <ViewToolbar>
+        <ToolbarLabel title={homePath}>
+          {homePath ? shortenHome(homePath, homePath) : '~'}
+        </ToolbarLabel>
+        <ToolbarSpacer />
+      </ViewToolbar>
+
+      <div className="min-h-0 w-full flex-1 space-y-7 overflow-y-auto px-4 py-4">
         <section>
           <h2 className="mb-2 text-[13px] font-semibold">Quick access</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

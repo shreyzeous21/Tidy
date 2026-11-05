@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { FileTable } from '@/components/files/FileTable'
 import type { TableMenuItem } from '@/components/files/FileTable'
 import { EmptyState } from '@/components/common/EmptyState'
+import { ViewSubbar, ViewToolbar } from '@/components/common/ViewToolbar'
 import { tidy, unwrap, messageOf } from '@/lib/api'
 import { useDebouncedValue } from '@/hooks/use-debounce'
 import { useAppStore } from '@/stores/app-store'
@@ -231,22 +232,24 @@ export function SearchView() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0 space-y-2 border-b border-border px-3 py-2.5">
-        <div className="relative">
-          <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <ViewToolbar>
+        <div className="relative min-w-0 flex-1">
+          <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search names — “pdf larger than 20 MB”, “type:image size:>10mb”, “ext:zip,dmg”"
-            className="pl-8"
+            className="h-8 pl-8 text-xs"
             aria-label="Search files by name"
             autoComplete="off"
             spellCheck={false}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <Select value={kind} onValueChange={(v) => setKind(v as FileKind | 'all')}>
+      </ViewToolbar>
+
+      <ViewSubbar>
+        <Select value={kind} onValueChange={(v) => setKind(v as FileKind | 'all')}>
             <SelectTrigger size="sm" className="w-32" aria-label="Kind filter">
               <SelectValue />
             </SelectTrigger>
@@ -334,9 +337,8 @@ export function SearchView() {
               <TooltipContent>Save this search</TooltipContent>
             </Tooltip>
           </div>
-        </div>
         {hints.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+          <div className="flex w-full flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
             <span>Understood as:</span>
             {hints.map((hint) => (
               <Badge key={hint} variant="outline" className="text-[10px] font-normal">
@@ -345,7 +347,7 @@ export function SearchView() {
             ))}
           </div>
         ) : null}
-      </div>
+      </ViewSubbar>
 
       {busy ? (
         <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">

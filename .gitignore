@@ -1,0 +1,78 @@
+# ---------------------------------------------------------------------------
+# Tidy — git ignore rules
+# ---------------------------------------------------------------------------
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+.yarn/
+jspm_packages/
+
+# Build output (electron-vite -> out/, electron-builder -> dist/)
+out/
+dist/
+release/
+*.tsbuildinfo
+.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Caches and test coverage
+.cache/
+.vite/
+.eslintcache
+.stylelintcache
+coverage/
+*.lcov
+.nyc_output/
+
+# Environment variables (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+.dmg
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editors and IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*~
+
+# Temporary / local tooling
+opencode.json
+.zcode/
+.playwright-mcp/
+*.local
+
+# NOTE: keep build/icon.png and src/renderer/src/assets/logo.png committed —
+# they are the app icon, referenced by electron-builder.yml and the sidebar.

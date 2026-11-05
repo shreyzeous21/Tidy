@@ -118,8 +118,10 @@ Everything runs locally. Files go to the macOS Trash, never a black hole.
 - **Multi-tab browsing** (⌘T / ⌘W) across any folder, up to **Macintosh HD** and mounted external drives.
 - Breadcrumbs, per-tab back/forward, sortable columns, type filters, and ⌘/⇧ multi-select.
 - Drag to move, **Quick Move** (⌘⇧M), rename, duplicate, compress/extract ZIP, and **New Folder** with Finder-style inline rename.
-- **Get Info** (⌘I) with permissions, dates, and ownership.
-- **Quick Look** (Space), **Reveal in Finder**, **Open in Terminal**, and copy path.
+- **Bulk Rename Studio** — find & replace, prefixes, suffixes, sequential numbering, and extension changes with a live preview of every name; conflicts are flagged and skipped, never overwritten.
+- **Get Info** (⌘I) with permissions, dates, and ownership — plus **Checksums** (SHA-256/MD5) with paste-to-verify.
+- **Quick Look** (Space), **View Contents** (full in-app text viewer with line numbers), **Reveal in Finder**, **Open in Terminal**, and copy path.
+- **Export folder trees** as text or JSON, and a live **change timeline** for the folder you're browsing.
 - Live updates through folder watching, plus a hidden-file toggle (⌘⇧.).
 
 ### Find anything
@@ -128,10 +130,13 @@ Everything runs locally. Files go to the macOS Trash, never a black hole.
 - Filters for kind, location, size, and modified date.
 - Optional **content search**, saved searches, and recent-query recall.
 
-### Clean up
-- **Large files**, **Duplicates** (streamed SHA-256 verified), **Old files**, **Empty folders**, and **Dev artifacts** (`node_modules`, `DerivedData`, `dist`, `build`, `.gradle`, `__pycache__`…).
-- A **Storage** tab with volume usage, biggest folders, and size-by-category — all computed with bounded local walks.
-- Review-and-approve workflows: nothing is deleted or moved until you confirm.
+### Clean up — 14 tools in 4 categories
+- **Space** — Large files, **Storage** (live volume monitor, interactive **disk treemap** with drill-down, daily usage history, biggest folders, size-by-category donut), **Duplicates** (streamed SHA-256 verified), **Duplicate folders** (byte-identical trees, head-hash verified).
+- **Cleanup** — Old files, Temp files, Old installers, Empty files, Empty folders, Broken symlinks, and **Caches** (sized, review-only).
+- **Developer** — **Dev artifacts** (`node_modules`, `DerivedData`, `dist`, `build`, `.gradle`, `__pycache__`… — outermost only, sized) and a **Git dashboard** (branch, uncommitted counts, last commit, `.git` size).
+- **Media** — **Similar images** via 64-bit perceptual hashing (dHash), decoded entirely on-device.
+- **Folder comparison** — two folders, side by side: only-in-A/B, differing, and identical (same-size pairs verified by content hash).
+- Review-and-approve workflows: nothing is deleted or moved until you confirm, and every batch reports per-file results.
 
 ### Downloads that organize themselves
 - Scan Downloads and group everything by type.
@@ -144,12 +149,15 @@ Everything runs locally. Files go to the macOS Trash, never a black hole.
 
 ### Apps and Trash
 - Browse `/Applications` and `~/Applications`, calculate bundle sizes, and trash apps with explicit confirmation.
+- **Application leftovers** — unmatched Application Support folders, surfaced for review.
+- **Login items and Launch agents** viewers (read-only) to see what launches alongside macOS.
 - Review the macOS Trash in-app, restore items, or permanently delete — with Full Disk Access handled gracefully.
 
 ### Built for macOS
-- Native title bar, system light/dark appearance, and **six accent colors**.
-- A polished first-run **permissions walkthrough** that explains *why* each permission is requested.
+- **Light Glass and Dark Glass themes** — native window vibrancy with frosted chrome, a Finder-style smoked-black sidebar, soft reflections in dark mode, and **six accent colors**.
+- Native title bar, real traffic lights, and a polished first-run **permissions walkthrough** that explains *why* each permission is requested.
 - Keyboard-first: a command palette (⌘K) and in-app shortcuts for everything.
+- **Undo** for renames and moves right from the activity list, with a bounded local operation history.
 
 ## Download & install
 
@@ -274,21 +282,27 @@ build/             generated app icon
 ## Roadmap
 
 - [x] Multi-tab file browser with per-tab history
-- [x] Spotlight search with natural-language filters
-- [x] Clean Up suite + Storage charts
+- [x] Spotlight search with natural-language filters and operators
+- [x] Clean Up suite: 14 tools + interactive disk treemap + usage history
 - [x] Overview dashboard
 - [x] Trash review and restore
 - [x] First-run permissions onboarding
+- [x] Glass themes with accent colors
+- [x] Command palette, Bulk Rename Studio, folder comparison, similar-image finder, undo
 - [ ] Signed and notarized builds
 - [ ] Dual-pane / split view
 - [ ] More archive formats besides `.zip`
 - [ ] Finder-style multi-file clipboard paste
+- [ ] Folder synchronization
 
 ## Known limitations
 
 - Only `.zip` archives are supported for Compress/Extract (via the system `ditto`).
 - Content search requires macOS Spotlight; the local fallback is filename-only.
+- Similar-image detection caps at 1,200 images per scan and skips undecodable formats.
 - Storage and cleanup walks are depth- and count-capped, so extremely deep trees may be undercounted.
+- Application-leftover matching is heuristic — always review the list before trashing.
+- Undo covers renames and moves (not Trash — restore those in Finder).
 - Cross-volume moves of *folders* are refused (copies are fine).
 - Builds are unsigned and not notarized.
 

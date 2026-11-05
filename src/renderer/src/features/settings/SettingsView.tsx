@@ -34,7 +34,7 @@ const THEMES: Array<{ value: ThemePreference; label: string }> = [
 ]
 
 const SHORTCUTS: Array<[string, string]> = [
-  ['⌘ 1–9', 'Switch sections (⌘4 = Apps)'],
+  ['⌘ 1–9', 'Switch sections (⌘5 = Apps)'],
   ['⌘ K', 'Command palette'],
   ['⌘ F', 'Search'],
   ['⌘ ⇧ M', 'Quick Move (Files view)'],

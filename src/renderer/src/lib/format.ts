@@ -10,6 +10,14 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(digits)} ${units[exponent]}`
 }
 
+/** RAM, e.g. 17179869184 → "16 GB". */
+export function formatRam(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '—'
+  const gb = bytes / 1024 ** 3
+  const rounded = Math.round(gb)
+  return `${rounded} GB`
+}
+
 export function formatDate(ms: number): string {
   if (!ms) return '—'
   const date = new Date(ms)

@@ -9,6 +9,7 @@ import { registerSearchHandlers } from './ipc/search-handlers'
 import { registerSettingsHandlers } from './ipc/settings-handlers'
 import { registerCleanupHandlers } from './ipc/cleanup-handlers'
 import { registerPermissionHandlers } from './ipc/permission-handlers'
+import { registerSystemHandlers } from './ipc/system-handlers'
 import { pickIcon } from './lib/utils'
 
 /**
@@ -95,6 +96,7 @@ if (!gotLock) {
     }
 
     // Privileged services + typed IPC surface (registered once, up front).
+    registerSystemHandlers()
     watcher = new FileWatcher(() => BrowserWindow.getAllWindows()[0] ?? null)
     const cancels = new CancelRegistry()
     void createHandlerContext(watcher, cancels).then((ctx) => {

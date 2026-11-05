@@ -13,7 +13,7 @@ import type {
 } from './files'
 import type { SearchOptions, SearchResponse } from './search'
 import type { AppSettings, OperationHistoryItem } from './settings'
-import type { ItemInfo, StorageOverview, ApplicationEntry } from './info'
+import type { ItemInfo, StorageOverview, ApplicationEntry, SystemInfo } from './info'
 import type { PermissionId, PermissionStatus } from './permissions'
 import type {
   AppInfo,
@@ -131,6 +131,8 @@ export interface FileManagerAPI {
   resetSettings(): Promise<ApiResult<AppSettings>>
   getHistory(): Promise<ApiResult<OperationHistoryItem[]>>
   getAppInfo(): Promise<ApiResult<AppInfo>>
+  /** Hardware summary for the sidebar card (model, chip, cores, memory, OS). */
+  getSystemInfo(): Promise<ApiResult<SystemInfo>>
 
   // Permissions (first-run onboarding)
   /** Current macOS permission states, for the setup flow. */

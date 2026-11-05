@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { AppInfo } from '@shared/types/cleanup'
 import type { FileEntry, FileKind, FolderInfo, SortDirection, SortKey } from '@shared/types/files'
+import type { SystemInfo } from '@shared/types/info'
 import { dirName } from '@/lib/format'
 
 /** One browser tab: its own location, history, listing, and view options. */
@@ -171,12 +172,15 @@ export interface HomeFoldersState {
   homeFolders: FolderInfo[]
   homePath: string
   appInfo: AppInfo | null
+  /** Hardware summary for the sidebar card. */
+  systemInfo: SystemInfo | null
   volumes: FolderInfo[]
   /** Calculated recursive folder sizes, keyed by folder path. */
   folderSizes: Map<string, { bytes: number; files: number; truncated: boolean }>
   setHomeFolders: (folders: FolderInfo[]) => void
   setHomePath: (homePath: string) => void
   setAppInfo: (info: AppInfo) => void
+  setSystemInfo: (info: SystemInfo) => void
   setVolumes: (volumes: FolderInfo[]) => void
   setFolderSize: (path: string, size: { bytes: number; files: number; truncated: boolean }) => void
 }
@@ -185,11 +189,13 @@ export const useMetaStore = create<HomeFoldersState>((set) => ({
   homeFolders: [],
   homePath: '/',
   appInfo: null,
+  systemInfo: null,
   volumes: [],
   folderSizes: new Map(),
   setHomeFolders: (homeFolders) => set({ homeFolders }),
   setHomePath: (homePath) => set({ homePath }),
   setAppInfo: (appInfo) => set({ appInfo }),
+  setSystemInfo: (systemInfo) => set({ systemInfo }),
   setVolumes: (volumes) => set({ volumes }),
   setFolderSize: (path, size) =>
     set((state) => {

@@ -103,7 +103,7 @@ function useGlobalShortcuts(): void {
 function useBootstrap(): boolean {
   const loadSettings = useAppStore((s) => s.loadSettings)
   const settings = useAppStore((s) => s.settings)
-  const { setHomeFolders, setHomePath, setAppInfo } = useMetaStore()
+  const { setHomeFolders, setHomePath, setAppInfo, setSystemInfo } = useMetaStore()
 
   useEffect(() => {
     void loadSettings()
@@ -113,10 +113,13 @@ function useBootstrap(): boolean {
         setHomePath(info.homePath)
       })
       .catch(() => {})
+    void unwrap(tidy().getSystemInfo())
+      .then(setSystemInfo)
+      .catch(() => {})
     void unwrap(tidy().getHomeFolders())
       .then((result) => setHomeFolders(result.folders))
       .catch(() => {})
-  }, [loadSettings, setAppInfo, setHomeFolders, setHomePath])
+  }, [loadSettings, setAppInfo, setSystemInfo, setHomeFolders, setHomePath])
 
   // Theme + accent side-effects.
   const theme = settings?.theme ?? 'system'

@@ -24,6 +24,28 @@ export interface ItemInfo {
   hidden: boolean
 }
 
+/** Hardware + OS summary shown in the sidebar card. */
+export interface SystemInfo {
+  /** Marketing model name, e.g. "MacBook Pro". */
+  modelName: string
+  /** Apple model identifier, e.g. "Mac16,5". */
+  modelIdentifier: string
+  /** Chip name, e.g. "Apple M5". */
+  chip: string
+  /** macOS version without the patch suffix, e.g. "26.1". */
+  osVersion: string
+  /** Physical CPU cores. */
+  totalCores: number
+  /** Performance cores (Apple silicon only). */
+  performanceCores: number | null
+  /** Efficiency cores (Apple silicon only). */
+  efficiencyCores: number | null
+  /** Installed memory in bytes. */
+  memoryBytes: number
+  /** Process architecture: "arm64" or "x64". */
+  architecture: string
+}
+
 export interface VolumeUsage {
   path: string
   name: string

@@ -29,6 +29,7 @@ import type { ViewId } from '@/stores/app-store'
 import { applyAccent } from '@/lib/theme'
 import { useMetaStore } from '@/stores/browser-store'
 import { shortenHome } from '@/lib/format'
+import { HardwareCard } from '@/components/common/HardwareCard'
 import type { ThemePreference } from '@shared/types/settings'
 import type { LucideIcon } from 'lucide-react'
 
@@ -128,6 +129,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <div className="px-2 pb-1.5 pt-1">
+        <HardwareCard />
+      </div>
 
       <SidebarFooter>
         <SidebarMenu>

@@ -85,6 +85,7 @@ const api: FileManagerAPI = {
   resetSettings: () => invoke('settings:reset'),
   getHistory: () => invoke('history:get'),
   getAppInfo: () => invoke('app:info'),
+  getSystemInfo: () => invoke('app:system-info'),
 
   // Live updates
   watchDirectory: (path, onEvent) => {

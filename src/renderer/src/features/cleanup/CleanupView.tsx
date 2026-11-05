@@ -11,9 +11,6 @@ import {
   FolderX,
   Scale,
   Package,
-  FileQuestion,
-  Link2Off,
-  Disc3,
   Folders,
   Image,
   GitBranch
@@ -42,7 +39,7 @@ import {
 import { TrashConfirmDialog } from '@/components/dialogs/TrashConfirmDialog'
 import { CompareFoldersDialog } from '@/components/dialogs/ToolDialogs'
 import { EmptyState } from '@/components/common/EmptyState'
-import { FindersView, FINDER_TABS } from './CleanupFinders'
+import { FinderControls, FinderListRow, FinderListShell, FinderResults, FINDER_TABS, useFinderScan } from './CleanupFinders'
 import { StorageExtras } from './StorageExtras'
 import type { FinderTab } from './CleanupFinders'
 import { ToolbarSpacer, ViewSubbar, ViewToolbar } from '@/components/common/ViewToolbar'
@@ -58,6 +55,56 @@ import { BiggestFoldersChart, CategoryDonut } from './StorageCharts'
 import { cn } from 'cn'
 
 type Tab = 'large' | 'duplicates' | 'old' | 'empty' | 'dev' | 'storage' | FinderTab
+
+interface ToolCategory {
+  id: string
+  label: string
+  icon: typeof HardDrive
+  tools: Array<{ id: Tab; label: string }>
+}
+
+const CATEGORIES: ToolCategory[] = [
+  {
+    id: 'space',
+    label: 'Space',
+    icon: Scale,
+    tools: [
+      { id: 'large', label: 'Large files' },
+      { id: 'storage', label: 'Storage' },
+      { id: 'duplicates', label: 'Duplicates' },
+      { id: 'dup-folders', label: 'Duplicate folders' }
+    ]
+  },
+  {
+    id: 'cleanup',
+    label: 'Cleanup',
+    icon: Eraser,
+    tools: [
+      { id: 'old', label: 'Old files' },
+      { id: 'temp-files', label: 'Temp files' },
+      { id: 'old-installers', label: 'Old installers' },
+      { id: 'empty-files', label: 'Empty files' },
+      { id: 'empty', label: 'Empty folders' },
+      { id: 'broken-links', label: 'Broken links' },
+      { id: 'cache', label: 'Caches' }
+    ]
+  },
+  {
+    id: 'dev',
+    label: 'Developer',
+    icon: GitBranch,
+    tools: [
+      { id: 'dev', label: 'Dev artifacts' },
+      { id: 'git', label: 'Git repos' }
+    ]
+  },
+  {
+    id: 'media',
+    label: 'Media',
+    icon: Image,
+    tools: [{ id: 'sim-images', label: 'Similar images' }]
+  }
+]
 
 const LARGE_THRESHOLDS = [
   { value: '100', label: '100 MB' },
@@ -108,6 +155,7 @@ export function CleanupView() {
   const [emptyFolders, setEmptyFolders] = useState<string[]>([])
   const [overview, setOverview] = useState<StorageOverview | null>(null)
   const [compareOpen, setCompareOpen] = useState(false)
+  const finder = useFinderScan(FINDER_TABS.includes(tab as FinderTab) ? (tab as FinderTab) : 'empty-files')
   const [devArtifacts, setDevArtifacts] = useState<DevArtifact[]>([])
   const [scannedRoot, setScannedRoot] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -376,44 +424,41 @@ export function CleanupView() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <ViewToolbar>
-        <div className="flex flex-wrap rounded-md border border-border p-0.5">
-          {(
-            [
-              { id: 'large', label: 'Large files', icon: HardDrive },
-              { id: 'duplicates', label: 'Duplicates', icon: Copy },
-              { id: 'old', label: 'Old files', icon: Clock },
-              { id: 'empty', label: 'Empty folders', icon: FolderX },
-              { id: 'dev', label: 'Dev artifacts', icon: Package },
-              { id: 'storage', label: 'Storage', icon: Scale },
-              { id: 'empty-files', label: 'Empty files', icon: FileQuestion },
-              { id: 'broken-links', label: 'Broken links', icon: Link2Off },
-              { id: 'temp-files', label: 'Temp files', icon: FileQuestion },
-              { id: 'old-installers', label: 'Old installers', icon: Disc3 },
-              { id: 'dup-folders', label: 'Dup folders', icon: Folders },
-              { id: 'sim-images', label: 'Similar images', icon: Image },
-              { id: 'cache', label: 'Caches', icon: Trash2 },
-              { id: 'git', label: 'Git repos', icon: GitBranch }
-            ] as const
-          ).map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className={cn(
-                'flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-ring',
-                tab === id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Icon className="size-3.5" />
-              {label}
-            </button>
-          ))}
+        {/* Category tabs — 4 groups instead of 14 flat pills */}
+        <div className="flex rounded-md border border-border p-0.5">
+          {CATEGORIES.map((category) => {
+            const active = category.tools.some((tool) => tool.id === tab)
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setTab(category.tools[0].id)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-ring',
+                  active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <category.icon className="size-3.5" />
+                {category.label}
+              </button>
+            )
+          })}
         </div>
         <ToolbarSpacer />
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs"
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setCompareOpen(true)}
+          disabled={busy}
+        >
+          <Folders className="size-3.5" />
+          Compare folders…
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1.5 text-xs"
           onClick={() => void browse()}
           disabled={busy}
         >
@@ -423,6 +468,33 @@ export function CleanupView() {
       </ViewToolbar>
 
       <ViewSubbar>
+        {/* Tool sub-tabs for the active category */}
+        {(() => {
+          const category = CATEGORIES.find((c) => c.tools.some((tool) => tool.id === tab))
+          if (!category) return null
+          return (
+            <>
+              <div className="flex rounded-md border border-border bg-background/40 p-0.5">
+                {category.tools.map((tool) => (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    onClick={() => setTab(tool.id)}
+                    className={cn(
+                      'flex items-center rounded px-2 py-1 text-[11px] font-medium focus-visible:ring-2 focus-visible:ring-ring',
+                      tab === tool.id
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {tool.label}
+                  </button>
+                ))}
+              </div>
+              <span className="h-5 w-px bg-border" role="presentation" />
+            </>
+          )
+        })()}
         {tab === 'large' ? (
           <>
             <span className="text-xs text-muted-foreground">Files larger than</span>
@@ -493,7 +565,7 @@ export function CleanupView() {
             </Button>
           </>
       ) : FINDER_TABS.includes(tab as FinderTab) ? (
-        <FindersView tab={tab as FinderTab} onOpenCompare={() => setCompareOpen(true)} />
+        <FinderControls scan={finder} onOpenCompare={() => setCompareOpen(true)} />
       ) : tab === 'storage' ? (
           <>
             <span className="text-xs text-muted-foreground">
@@ -501,7 +573,7 @@ export function CleanupView() {
             </span>
             <Button size="sm" onClick={() => void runStorageScan()} disabled={busy}>
               {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Scale className="size-3.5" />}
-              Analyze
+              Scan
             </Button>
           </>
         ) : (
@@ -679,40 +751,28 @@ export function CleanupView() {
               }
             />
           ) : (
-            <ul className="p-3">
+            <FinderListShell>
               {emptyFolders.map((folder) => (
-                <li key={folder} className="flex items-center gap-2.5 border-b border-border/40 px-1 py-1.5 text-xs last:border-b-0">
-                  <input
-                    type="checkbox"
-                    checked={selectedPaths.has(folder)}
-                    onChange={(event) =>
-                      setSelectedPaths((current) => {
-                        const next = new Set(current)
-                        if (event.target.checked) next.add(folder)
-                        else next.delete(folder)
-                        return next
-                      })
-                    }
-                    aria-label={`Select ${folder}`}
-                  />
-                  <FolderX className="size-3.5 shrink-0 text-muted-foreground/70" />
-                  <span className="min-w-0 flex-1 truncate" title={folder}>
-                    {folder}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-1.5 text-[11px]"
-                    onClick={() => void unwrap(tidy().revealInFinder(folder)).catch(() => {})}
-                  >
-                    Reveal
-                  </Button>
-                </li>
+                <FinderListRow
+                  key={folder}
+                  checked={selectedPaths.has(folder)}
+                  onCheck={(checked) =>
+                    setSelectedPaths((current) => {
+                      const next = new Set(current)
+                      if (checked) next.add(folder)
+                      else next.delete(folder)
+                      return next
+                    })
+                  }
+                  path={folder}
+                  name={folder.split('/').pop() || folder}
+                  icon={<FolderX className="size-4 text-muted-foreground/70" />}
+                />
               ))}
               <li className="px-1 pt-2 text-[11px] text-muted-foreground">
                 Nested folders inside a selected tree are removed together with it.
               </li>
-            </ul>
+            </FinderListShell>
           )}
         </div>
       ) : tab === 'dev' ? (
@@ -728,55 +788,37 @@ export function CleanupView() {
               }
             />
           ) : (
-            <ul className="p-3">
-              <li className="mb-2 flex items-center gap-2 px-1 text-[11px] text-muted-foreground">
-                <SquareDashed className="size-3" />
-                {devArtifacts.length} artifacts · {formatBytes(devArtifacts.reduce((sum, a) => sum + a.bytes, 0))} total — everything here can be regenerated by your tools.
-              </li>
-              {devArtifacts.map((artifact) => (
-                <li
-                  key={artifact.path}
-                  className={cn(
-                    'flex items-center gap-2.5 border-b border-border/40 px-1 py-1.5 text-xs last:border-b-0',
-                    selectedPaths.has(artifact.path) && 'bg-primary/[0.06]'
-                  )}
-                >
-                  <input
-                    type="checkbox"
+            <div>
+              <p className="mb-2 flex items-center gap-2 px-1 text-[11px] text-muted-foreground">
+                {devArtifacts.length} artifacts ·{' '}
+                {formatBytes(devArtifacts.reduce((sum, a) => sum + a.bytes, 0))} total — everything here can be
+                regenerated by your tools.
+              </p>
+              <FinderListShell>
+                {devArtifacts.map((artifact) => (
+                  <FinderListRow
+                    key={artifact.path}
                     checked={selectedPaths.has(artifact.path)}
-                    onChange={(event) =>
+                    onCheck={(checked) =>
                       setSelectedPaths((current) => {
                         const next = new Set(current)
-                        if (event.target.checked) next.add(artifact.path)
+                        if (checked) next.add(artifact.path)
                         else next.delete(artifact.path)
                         return next
                       })
                     }
-                    aria-label={`Select ${artifact.path}`}
+                    path={artifact.path}
+                    name={artifact.name}
+                    icon={<Package className="size-4 text-muted-foreground/70" />}
+                    meta={formatBytes(artifact.bytes)}
                   />
-                  <Package className="size-3.5 shrink-0 text-muted-foreground/70" />
-                  <span className="w-36 shrink-0 truncate font-medium" title={artifact.name}>
-                    {artifact.name}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-muted-foreground" title={artifact.path}>
-                    {artifact.path}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-muted-foreground">{formatBytes(artifact.bytes)}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 shrink-0 px-1.5 text-[11px]"
-                    onClick={() => void unwrap(tidy().revealInFinder(artifact.path)).catch(() => {})}
-                  >
-                    Reveal
-                  </Button>
-                </li>
-              ))}
-            </ul>
+                ))}
+              </FinderListShell>
+            </div>
           )}
         </div>
       ) : FINDER_TABS.includes(tab as FinderTab) ? (
-        <FindersView tab={tab as FinderTab} onOpenCompare={() => setCompareOpen(true)} />
+        <FinderResults scan={finder} />
       ) : tab === 'storage' ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           {!overview ? (

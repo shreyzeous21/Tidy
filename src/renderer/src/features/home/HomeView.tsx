@@ -39,7 +39,6 @@ export function HomeView() {
   }
   useEffect(() => {
     refreshHistory()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const undoOperation = (id: string): void => {
     void unwrap(tidy().undoOperation(id))

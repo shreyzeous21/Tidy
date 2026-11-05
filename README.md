@@ -146,8 +146,8 @@ Everything runs locally. Files go to the macOS Trash, never a black hole.
 
    | Your Mac | Download |
    | --- | --- |
-   | Apple silicon (M1–M5) | `Tidy-0.1.0-arm64.dmg` |
-   | Intel | `Tidy-0.1.0-x64.dmg` |
+   | Apple silicon (M1–M5) | `Tidy-0.1.5-arm64.dmg` |
+   | Intel | `Tidy-0.1.5-x64.dmg` |
 
 2. Open the DMG and drag **Tidy** into **Applications**.
 3. Launch Tidy and follow the short permissions walkthrough.

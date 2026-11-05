@@ -1,7 +1,7 @@
 {
   "name": "tidy",
   "productName": "Tidy",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "A minimalist macOS file manager. Less time managing files, less clutter, find anything instantly.",
   "main": "./out/main/index.js",
   "author": "Shrey",

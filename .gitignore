@@ -80,3 +80,4 @@ opencode.json
 # they are the app icon, referenced by electron-builder.yml and the sidebar.
 
 RELE*
+.agents

@@ -78,3 +78,5 @@ opencode.json
 
 # NOTE: keep build/icon.png and src/renderer/src/assets/logo.png committed —
 # they are the app icon, referenced by electron-builder.yml and the sidebar.
+
+RELE*

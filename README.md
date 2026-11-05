@@ -142,11 +142,17 @@ Everything runs locally. Files go to the macOS Trash, never a black hole.
 
 ### Direct download
 
-1. Open **[Releases](https://github.com/shrey/tidy/releases/latest)** and download the latest `.dmg`.
+1. Open **[Releases](https://github.com/shrey/tidy/releases/latest)** and pick the build for your Mac:
+
+   | Your Mac | Download |
+   | --- | --- |
+   | Apple silicon (M1–M5) | `Tidy-0.1.0-arm64.dmg` |
+   | Intel | `Tidy-0.1.0-x64.dmg` |
+
 2. Open the DMG and drag **Tidy** into **Applications**.
 3. Launch Tidy and follow the short permissions walkthrough.
 
-Builds are produced for both **Apple silicon** and **Intel** Macs.
+> **Install the arm64 build on Apple silicon.** The `x64` build still runs on Apple silicon, but only through Rosetta — it feels noticeably slower. Native `arm64` is the fast one.
 
 > **First launch:** builds are currently unsigned, so macOS may warn that Tidy is from an unidentified developer. Right-click **Tidy** → **Open**, or clear the quarantine flag:
 >
@@ -283,6 +289,8 @@ Contributions are welcome — issues, ideas, and pull requests alike.
 4. Open a pull request describing the problem and the fix.
 
 If you find a security or privacy issue, please open a private advisory instead of a public issue.
+
+Maintainers: see [RELEASING.md](RELEASING.md) for the step-by-step release process.
 
 ## Acknowledgements
 

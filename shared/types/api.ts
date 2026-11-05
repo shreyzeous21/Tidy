@@ -13,8 +13,9 @@ import type {
 } from './files'
 import type { SearchOptions, SearchResponse } from './search'
 import type { AppSettings, OperationHistoryItem } from './settings'
-import type { ItemInfo, StorageOverview, ApplicationEntry, SystemInfo } from './info'
+import type { ItemInfo, StorageOverview, ApplicationEntry, VolumeUsage, LaunchAgentInfo, SystemInfo } from './info'
 import type { PermissionId, PermissionStatus } from './permissions'
+import type { FolderCompareResult } from './cleanup'
 import type {
   AppInfo,
   DuplicateGroup,
@@ -23,7 +24,14 @@ import type {
   ScanProgress,
   CleanupResponse,
   DevArtifact,
-  ReadTextResult
+  ReadTextResult,
+  BrokenLink,
+  CacheItem,
+  DuplicateFolderGroup,
+  SimilarImageGroup,
+  RepoInfo,
+  TimelineEvent,
+  UsageSnapshot
 } from './cleanup'
 
 export interface HomeFolderInfo {
@@ -92,8 +100,25 @@ export interface FileManagerAPI {
   scanDevArtifacts(root: string): Promise<ApiResult<CleanupResponse<DevArtifact[]>>>
   /** Installed applications from /Applications and ~/Applications. */
   listApplications(): Promise<ApiResult<ApplicationEntry[]>>
+  /** Unmatched Application Support folders (leftovers, review-only). */
+  getAppLeftovers(): Promise<ApiResult<FileEntry[]>>
+  /** Login item names (read-only; may require Automation permission). */
+  listLoginItems(): Promise<ApiResult<string[]>>
+  /** Launch agents (user + local domains). */
+  listLaunchAgents(): Promise<ApiResult<LaunchAgentInfo[]>>
   /** Read a file as text for the in-app viewer (binary files are flagged). */
   readTextFile(path: string): Promise<ApiResult<ReadTextResult>>
+  /** Streamed checksum (sha256 or md5). */
+  checksum(path: string, algorithm: 'sha256' | 'md5'): Promise<ApiResult<{ algorithm: string; hex: string; bytes: number }>>
+  /** Export a bounded directory tree to a chosen file. */
+  exportTree(path: string, format: 'text' | 'json'): Promise<ApiResult<string | null>>
+  /** Raw change timeline for the currently watched folder. */
+  getTimeline(): Promise<ApiResult<TimelineEvent[]>>
+  /** Storage usage snapshots + a fresh one recorded on demand. */
+  getUsageHistory(): Promise<ApiResult<UsageSnapshot[]>>
+  recordUsageSnapshot(): Promise<ApiResult<VolumeUsage[]>>
+  /** Light statfs-only volume usage for live monitoring. */
+  volumesUsage(): Promise<ApiResult<VolumeUsage[]>>
 
   // Live updates
   /**
@@ -120,6 +145,26 @@ export interface FileManagerAPI {
     root: string
     olderThanDays: number
   }): Promise<ApiResult<CleanupResponse<FileEntry[]>>>
+  /** Zero-byte files. */
+  scanEmptyFiles(root: string): Promise<ApiResult<CleanupResponse<FileEntry[]>>>
+  /** Symlinks pointing at missing targets. */
+  scanBrokenLinks(root: string): Promise<ApiResult<CleanupResponse<BrokenLink[]>>>
+  /** Leftover temp/backup files by name pattern. */
+  scanTempFiles(root: string): Promise<ApiResult<CleanupResponse<FileEntry[]>>>
+  /** Disk images untouched for 30+ days. */
+  scanOldInstallers(root: string): Promise<ApiResult<CleanupResponse<FileEntry[]>>>
+  /** Top-level children of a cache root with sizes. */
+  scanCache(root: string): Promise<ApiResult<CleanupResponse<CacheItem[]>>>
+  /** Byte-identical folder trees. */
+  scanDuplicateFolders(root: string): Promise<ApiResult<CleanupResponse<DuplicateFolderGroup[]>>>
+  /** Perceptually similar images (dHash). */
+  scanSimilarImages(root: string): Promise<ApiResult<CleanupResponse<SimilarImageGroup[]>>>
+  /** Git repositories with status + sizes. */
+  scanGitRepos(root: string): Promise<ApiResult<CleanupResponse<RepoInfo[]>>>
+  /** Porcelain status lines for one repository. */
+  gitStatus(repo: string): Promise<ApiResult<string[]>>
+  /** Compare two folders (path sets + head-hash verified equality). */
+  compareFolders(dirA: string, dirB: string): Promise<ApiResult<FolderCompareResult>>
   /** Outermost folders whose entire subtree contains no files. */
   scanEmptyFolders(options: { root: string }): Promise<ApiResult<CleanupResponse<string[]>>>
   cancelScan(scanId: string): Promise<ApiResult<void>>
@@ -128,6 +173,8 @@ export interface FileManagerAPI {
   getSettings(): Promise<ApiResult<AppSettings>>
   updateSettings(patch: Partial<AppSettings>): Promise<ApiResult<AppSettings>>
   clearHistory(): Promise<ApiResult<void>>
+  /** Undo a rename/move recorded in the history. */
+  undoOperation(id: string): Promise<ApiResult<void>>
   resetSettings(): Promise<ApiResult<AppSettings>>
   getHistory(): Promise<ApiResult<OperationHistoryItem[]>>
   getAppInfo(): Promise<ApiResult<AppInfo>>

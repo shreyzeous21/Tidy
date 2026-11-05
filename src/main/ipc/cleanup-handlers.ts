@@ -6,6 +6,20 @@ import { scanDuplicates, scanEmptyFolders, scanLargeFiles, scanOldFiles } from '
 import { getStorageOverview } from '../services/storage-overview'
 import { scanDevArtifacts } from '../services/dev-artifacts'
 import { computeFolderSize } from '../services/folder-size'
+import {
+  analyzeCacheRoot,
+  findBrokenLinks,
+  findDuplicateFolders,
+  findEmptyFiles,
+  findOldInstallers,
+  findTempFiles
+} from '../services/finders'
+import { findSimilarImages } from '../services/similar-images'
+import { repoStatus, scanRepositories } from '../services/git'
+import { compareFolders } from '../services/compare-folders'
+import { getUsageHistory, recordUsageSnapshot } from '../services/usage-history'
+import { hashFile } from '../services/fs-core'
+import os from 'node:os'
 import type { HandlerContext } from './context'
 
 /**
@@ -158,6 +172,85 @@ export function registerCleanupHandlers(ctx: HandlerContext): void {
         activeScanIds.delete(scanId)
         ctx.cancels.forget(scanId)
       }
+    })
+  )
+
+  const finderHandler = (
+    channel: string,
+    run: (root: string, ctx: { isCancelled: () => boolean; scanId: string; onProgress: (p: Omit<ScanProgress, 'scanId'>) => void }) => Promise<unknown>
+  ): void => {
+    ipcMain.handle(channel, (_event, inputRoot: unknown) =>
+      guard(async () => {
+        const root = normalizePath(inputRoot ?? os.homedir(), 'scan folder')
+        const scanId = newScanId()
+        activeScanIds.add(scanId)
+        try {
+          const result = await run(root, {
+            isCancelled: () => ctx.cancels.isCancelled(scanId),
+            scanId,
+            onProgress: (p) => {
+              BrowserWindow.getAllWindows()[0]?.webContents.send('cleanup:progress', { ...p, scanId } satisfies ScanProgress)
+            }
+          })
+          return { scanId, result }
+        } finally {
+          activeScanIds.delete(scanId)
+          ctx.cancels.forget(scanId)
+        }
+      })
+    )
+  }
+
+  finderHandler('cleanup:empty-files', (root, c) =>
+    findEmptyFiles(root, { isCancelled: c.isCancelled, scanId: c.scanId, onProgress: (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }) })
+  )
+  finderHandler('cleanup:broken-links', (root, c) =>
+    findBrokenLinks(root, { isCancelled: c.isCancelled, scanId: c.scanId, onProgress: (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }) })
+  )
+  finderHandler('cleanup:temp-files', (root, c) =>
+    findTempFiles(root, { isCancelled: c.isCancelled, scanId: c.scanId, onProgress: (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }) })
+  )
+  finderHandler('cleanup:old-installers', (root, c) =>
+    findOldInstallers(root, 30, { isCancelled: c.isCancelled, scanId: c.scanId, onProgress: (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }) })
+  )
+  finderHandler('cleanup:cache', (root, c) =>
+    analyzeCacheRoot(root, { isCancelled: c.isCancelled, scanId: c.scanId, onProgress: (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }) })
+  )
+  finderHandler('cleanup:duplicate-folders', (root, c) =>
+    findDuplicateFolders(root, { isCancelled: c.isCancelled, scanId: c.scanId, onProgress: (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }) }, (file) => hashFile(file, { headBytes: 64 * 1024 }))
+  )
+  finderHandler('cleanup:similar-images', (root, c) =>
+    findSimilarImages(root, c.isCancelled, (processed, currentPath) => c.onProgress({ phase: 'listing', processed, currentPath }))
+  )
+  finderHandler('cleanup:git-repos', (root, c) =>
+    scanRepositories(root, c.isCancelled, (visited, currentPath) => c.onProgress({ phase: 'listing', processed: visited, currentPath }), true)
+  )
+  ipcMain.handle('tools:compare-folders', (_event, dirA: unknown, dirB: unknown) =>
+    guard(async () => {
+      const a = normalizePath(dirA, 'folder A')
+      const b = normalizePath(dirB, 'folder B')
+      const scanId = newScanId()
+      activeScanIds.add(scanId)
+      try {
+        return await compareFolders(a, b, () => ctx.cancels.isCancelled(scanId))
+      } finally {
+        activeScanIds.delete(scanId)
+        ctx.cancels.forget(scanId)
+      }
+    })
+  )
+
+  ipcMain.handle('git:status', (_event, inputRepo: unknown) =>
+    guard(async () => repoStatus(normalizePath(inputRepo, 'repository path')))
+  )
+
+  ipcMain.handle('usage:history', () => guard(async () => getUsageHistory()))
+  ipcMain.handle('usage:record', () =>
+    guard(async () => {
+      const { volumeUsageOf } = await import('../services/volumes-usage')
+      const volumes = await volumeUsageOf()
+      await recordUsageSnapshot(volumes)
+      return volumes
     })
   )
 

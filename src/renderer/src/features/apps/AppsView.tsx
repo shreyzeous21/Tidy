@@ -12,6 +12,7 @@ import { FileTable } from '@/components/files/FileTable'
 import type { TableMenuItem } from '@/components/files/FileTable'
 import { GetInfoDialog } from '@/components/dialogs/GetInfoDialog'
 import { ViewerDialog } from '@/components/dialogs/ViewerDialog'
+import { LoginAgentsDialog, LeftoversDialog } from '@/components/dialogs/ToolDialogs'
 import { TrashConfirmDialog } from '@/components/dialogs/TrashConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ToolbarLabel, ToolbarSpacer, ViewToolbar } from '@/components/common/ViewToolbar'
@@ -25,6 +26,8 @@ type DialogState =
   | { kind: 'info'; path: string }
   | { kind: 'view'; path: string }
   | { kind: 'trash'; items: Array<{ path: string; size: number }> }
+  | { kind: 'extras' }
+  | { kind: 'leftovers' }
 
 /** Pseudo-entry so the shared FileTable can render applications. */
 function toFileEntry(app: ApplicationEntry): FileEntry {
@@ -154,7 +157,7 @@ export function AppsView() {
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter applications…"
+            placeholder="Filter apps"
             className="h-8 pl-8 text-xs"
             aria-label="Filter applications"
           />
@@ -206,6 +209,21 @@ export function AppsView() {
       )}
 
       {dialog.kind === 'info' ? <GetInfoDialog path={dialog.path} onClose={() => setDialog({ kind: 'none' })} /> : null}
+      {dialog.kind === 'extras' ? <LoginAgentsDialog onClose={() => setDialog({ kind: 'none' })} /> : null}
+      {dialog.kind === 'leftovers' ? (
+        <LeftoversDialog
+          onClose={() => setDialog({ kind: 'none' })}
+          onTrash={(paths) => {
+            void unwrap(tidy().moveToTrash(paths))
+              .then((results) => {
+                const failed = results.filter((r) => r.status === 'failed')
+                if (failed.length > 0) toast.error(`${failed.length} item(s) could not be trashed.`)
+                else toast.success('Leftovers moved to Trash')
+              })
+              .catch((cause) => toast.error(messageOf(cause)))
+          }}
+        />
+      ) : null}
       {dialog.kind === 'view' ? <ViewerDialog path={dialog.path} onClose={() => setDialog({ kind: 'none' })} /> : null}
       {dialog.kind === 'trash' ? (
         <TrashConfirmDialog

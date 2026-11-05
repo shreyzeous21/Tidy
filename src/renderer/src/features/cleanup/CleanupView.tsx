@@ -10,7 +10,13 @@ import {
   Clock,
   FolderX,
   Scale,
-  Package
+  Package,
+  FileQuestion,
+  Link2Off,
+  Disc3,
+  Folders,
+  Image,
+  GitBranch
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -34,7 +40,11 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import { TrashConfirmDialog } from '@/components/dialogs/TrashConfirmDialog'
+import { CompareFoldersDialog } from '@/components/dialogs/ToolDialogs'
 import { EmptyState } from '@/components/common/EmptyState'
+import { FindersView, FINDER_TABS } from './CleanupFinders'
+import { StorageExtras } from './StorageExtras'
+import type { FinderTab } from './CleanupFinders'
 import { ToolbarSpacer, ViewSubbar, ViewToolbar } from '@/components/common/ViewToolbar'
 import { tidy, unwrap, codeOf, messageOf } from '@/lib/api'
 import { formatBytes, shortenHome } from '@/lib/format'
@@ -47,7 +57,7 @@ import type { DevArtifact } from '@shared/types/cleanup'
 import { BiggestFoldersChart, CategoryDonut } from './StorageCharts'
 import { cn } from 'cn'
 
-type Tab = 'large' | 'duplicates' | 'old' | 'empty' | 'dev' | 'storage'
+type Tab = 'large' | 'duplicates' | 'old' | 'empty' | 'dev' | 'storage' | FinderTab
 
 const LARGE_THRESHOLDS = [
   { value: '100', label: '100 MB' },
@@ -97,6 +107,7 @@ export function CleanupView() {
   const [oldFiles, setOldFiles] = useState<FileEntry[]>([])
   const [emptyFolders, setEmptyFolders] = useState<string[]>([])
   const [overview, setOverview] = useState<StorageOverview | null>(null)
+  const [compareOpen, setCompareOpen] = useState(false)
   const [devArtifacts, setDevArtifacts] = useState<DevArtifact[]>([])
   const [scannedRoot, setScannedRoot] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -365,7 +376,7 @@ export function CleanupView() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <ViewToolbar>
-        <div className="flex rounded-md border border-border p-0.5">
+        <div className="flex flex-wrap rounded-md border border-border p-0.5">
           {(
             [
               { id: 'large', label: 'Large files', icon: HardDrive },
@@ -373,7 +384,15 @@ export function CleanupView() {
               { id: 'old', label: 'Old files', icon: Clock },
               { id: 'empty', label: 'Empty folders', icon: FolderX },
               { id: 'dev', label: 'Dev artifacts', icon: Package },
-              { id: 'storage', label: 'Storage', icon: Scale }
+              { id: 'storage', label: 'Storage', icon: Scale },
+              { id: 'empty-files', label: 'Empty files', icon: FileQuestion },
+              { id: 'broken-links', label: 'Broken links', icon: Link2Off },
+              { id: 'temp-files', label: 'Temp files', icon: FileQuestion },
+              { id: 'old-installers', label: 'Old installers', icon: Disc3 },
+              { id: 'dup-folders', label: 'Dup folders', icon: Folders },
+              { id: 'sim-images', label: 'Similar images', icon: Image },
+              { id: 'cache', label: 'Caches', icon: Trash2 },
+              { id: 'git', label: 'Git repos', icon: GitBranch }
             ] as const
           ).map(({ id, label, icon: Icon }) => (
             <button
@@ -473,6 +492,8 @@ export function CleanupView() {
               Scan
             </Button>
           </>
+      ) : FINDER_TABS.includes(tab as FinderTab) ? (
+        <FindersView tab={tab as FinderTab} onOpenCompare={() => setCompareOpen(true)} />
       ) : tab === 'storage' ? (
           <>
             <span className="text-xs text-muted-foreground">
@@ -516,6 +537,16 @@ export function CleanupView() {
             Cancel
           </Button>
         ) : null}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-xs"
+          onClick={() => setCompareOpen(true)}
+          disabled={busy}
+        >
+          <Folders className="size-3.5" />
+          Compare folders…
+        </Button>
         <div className="flex-1" />
         {(tab === 'large' || tab === 'old') && selectedPaths.size > 0 && !busy ? (
           <Button
@@ -744,6 +775,8 @@ export function CleanupView() {
             </ul>
           )}
         </div>
+      ) : FINDER_TABS.includes(tab as FinderTab) ? (
+        <FindersView tab={tab as FinderTab} onOpenCompare={() => setCompareOpen(true)} />
       ) : tab === 'storage' ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           {!overview ? (
@@ -790,6 +823,9 @@ export function CleanupView() {
               </div>
 
               <CategoryDonut categories={overview.categories} />
+              {overview ? (
+                <StorageExtras overview={overview} scannedRoot={scannedRoot} homePath={homePath} />
+              ) : null}
             </div>
           )}
         </div>
@@ -819,7 +855,7 @@ export function CleanupView() {
                           · {formatBytes(group.size)} each · {formatBytes(group.size * (group.files.length - 1))} reclaimable
                         </span>
                       </div>
-                      <span className="font-mono text-[10px] text-muted-foreground/60">
+                      <span className="font-mono text-[11px] text-muted-foreground/60">
                         {group.hash.slice(0, 12)}
                       </span>
                     </div>
@@ -883,6 +919,7 @@ export function CleanupView() {
         </div>
       )}
 
+      {compareOpen ? <CompareFoldersDialog onClose={() => setCompareOpen(false)} /> : null}
       {trashDialog ? (
         <TrashConfirmDialog
           items={trashDialog}

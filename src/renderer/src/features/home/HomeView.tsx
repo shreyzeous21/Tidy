@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FolderOpen, HardDrive, Clock, Loader2, Image as ImageIcon, History } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Undo2 } from 'lucide-react'
 import { FileIcon } from '@/components/common/FileIcon'
 import { EmptyState, PermissionNotice } from '@/components/common/EmptyState'
 import { ToolbarLabel, ToolbarSpacer, ViewToolbar } from '@/components/common/ViewToolbar'
@@ -11,6 +13,11 @@ import { useBrowserStore, useMetaStore } from '@/stores/browser-store'
 import type { FileEntry, FolderInfo } from '@shared/types/files'
 import type { OperationHistoryItem } from '@shared/types/settings'
 
+interface HistoryRow extends OperationHistoryItem {
+  undoable?: boolean
+  undone?: boolean
+}
+
 const QUICK_FOLDER_IDS = ['desktop', 'documents', 'downloads', 'pictures', 'music', 'movies']
 
 export function HomeView() {
@@ -20,16 +27,28 @@ export function HomeView() {
   const setView = useAppStore((s) => s.setView)
   const navigate = useBrowserStore((s) => s.navigate)
 
-  const [history, setHistory] = useState<OperationHistoryItem[]>([])
+  const [history, setHistory] = useState<HistoryRow[]>([])
   const [recentFiles, setRecentFiles] = useState<FileEntry[]>([])
   const [permissionIssues, setPermissionIssues] = useState<string[]>([])
   const [loadingRecent, setLoadingRecent] = useState(true)
 
-  useEffect(() => {
+  const refreshHistory = (): void => {
     void unwrap(tidy().getHistory())
       .then(setHistory)
       .catch(() => {})
+  }
+  useEffect(() => {
+    refreshHistory()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  const undoOperation = (id: string): void => {
+    void unwrap(tidy().undoOperation(id))
+      .then(() => {
+        toast.success('Operation undone')
+        refreshHistory()
+      })
+      .catch((cause) => toast.error(messageOf(cause)))
+  }
 
   // Recently modified: honest scope — top level of the quick-access folders only.
   useEffect(() => {
@@ -213,6 +232,16 @@ export function HomeView() {
                   className="flex items-center gap-2.5 border-b border-border/50 px-3 py-2 text-xs last:border-b-0"
                 >
                   <span className="min-w-0 flex-1 truncate">{item.summary}</span>
+                  {'undoable' in item && item.undoable ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1 px-1.5 text-[11px]"
+                      onClick={() => undoOperation(item.id)}
+                    >
+                      <Undo2 className="size-3" /> Undo
+                    </Button>
+                  ) : null}
                   <span className="shrink-0 text-[11px] capitalize text-muted-foreground">{item.type}</span>
                   <span className="w-16 shrink-0 text-right text-[11px] text-muted-foreground">
                     {formatRelative(item.at)}

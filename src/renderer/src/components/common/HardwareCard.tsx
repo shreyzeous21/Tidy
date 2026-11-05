@@ -26,7 +26,7 @@ export function HardwareCard() {
         <div className="mb-2 flex items-center gap-1.5">
           <Laptop className="size-3.5 text-sidebar-primary" />
           <span className="truncate text-[11px] font-semibold">{info.modelName}</span>
-          <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+          <span className="ml-auto text-[11px] text-muted-foreground">
             This Mac
           </span>
         </div>
@@ -50,7 +50,7 @@ export function HardwareCard() {
           </div>
         </div>
 
-        <div className="mt-2.5 flex items-center justify-between border-t border-sidebar-border/60 pt-2 text-[10.5px] text-muted-foreground">
+        <div className="mt-2.5 flex items-center justify-between border-t border-sidebar-border/60 pt-2 text-[11px] text-muted-foreground">
           <span>{info.totalCores} cores</span>
           <span className="lowercase">{info.architecture}</span>
         </div>

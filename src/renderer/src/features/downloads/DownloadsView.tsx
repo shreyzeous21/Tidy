@@ -280,7 +280,7 @@ function CategoryChip({
       )}
     >
       {label}
-      <span className={cn('rounded-full px-1.5 text-[10px]', active ? 'bg-primary/15' : 'bg-foreground/5')}>
+      <span className={cn('rounded-full px-1.5 text-[11px]', active ? 'bg-primary/15' : 'bg-foreground/5')}>
         {count}
       </span>
     </button>

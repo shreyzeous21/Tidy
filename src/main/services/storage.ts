@@ -88,7 +88,7 @@ export async function loadHistory(): Promise<OperationHistoryItem[]> {
   return Array.isArray(stored) ? stored : []
 }
 
-export async function appendHistory(item: Omit<OperationHistoryItem, 'id' | 'at'>): Promise<void> {
+export async function appendHistory(item: Omit<OperationHistoryItem, 'id' | 'at'>): Promise<string> {
   const history = await loadHistory()
   const entry: OperationHistoryItem = {
     ...item,
@@ -97,6 +97,7 @@ export async function appendHistory(item: Omit<OperationHistoryItem, 'id' | 'at'
   }
   const next = [entry, ...history].slice(0, HISTORY_LIMIT)
   await writeJsonAtomic(resolveDataFile(HISTORY_FILE), next)
+  return entry.id
 }
 
 export async function clearHistory(): Promise<void> {

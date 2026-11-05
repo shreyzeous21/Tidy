@@ -307,7 +307,7 @@ function DestinationList({
 }) {
   return (
     <div>
-      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">{title}</p>
+      <p className="mb-1 text-[11px] font-medium text-muted-foreground/70">{title}</p>
       <div className="flex flex-wrap gap-1.5">
         {paths.map((p) => (
           <button

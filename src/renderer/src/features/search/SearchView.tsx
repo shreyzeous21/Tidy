@@ -218,11 +218,11 @@ export function SearchView() {
   const sourceBadge = useMemo(() => {
     if (!source) return null
     return source === 'spotlight' ? (
-      <Badge variant="secondary" className="gap-1 text-[10px]">
+      <Badge variant="secondary" className="gap-1 text-[11px]">
         <Sparkles className="size-3" /> Spotlight
       </Badge>
     ) : (
-      <Badge variant="secondary" className="gap-1 text-[10px]">
+      <Badge variant="secondary" className="gap-1 text-[11px]">
         <HardDrive className="size-3" /> Local scan
       </Badge>
     )
@@ -239,7 +239,7 @@ export function SearchView() {
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search names — “pdf larger than 20 MB”, “type:image size:>10mb”, “ext:zip,dmg”"
+            placeholder="Search file names"
             className="h-8 pl-8 text-xs"
             aria-label="Search files by name"
             autoComplete="off"
@@ -296,7 +296,7 @@ export function SearchView() {
                 onValueChange={(v) => setLocation(v === '__home__' ? null : v)}
               >
                 <SelectTrigger size="sm" className="w-44" aria-label="Search location">
-                  <SelectValue placeholder="Search in: Home" />
+                  <SelectValue placeholder="Search location" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__home__">Entire home folder</SelectItem>
@@ -341,7 +341,7 @@ export function SearchView() {
           <div className="flex w-full flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
             <span>Understood as:</span>
             {hints.map((hint) => (
-              <Badge key={hint} variant="outline" className="text-[10px] font-normal">
+              <Badge key={hint} variant="outline" className="text-[11px] font-normal">
                 {hint}
               </Badge>
             ))}
@@ -374,7 +374,7 @@ export function SearchView() {
             />
             {(settings?.recentSearches.length ?? 0) > 0 ? (
               <div className="w-full max-w-lg">
-                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">Recent searches</p>
+                <p className="mb-1.5 text-[11px] font-medium text-muted-foreground/70">Recent searches</p>
                 <div className="flex flex-wrap gap-1.5">
                   {settings!.recentSearches.map((q) => (
                     <button
@@ -391,7 +391,7 @@ export function SearchView() {
             ) : null}
             {(settings?.savedSearches.length ?? 0) > 0 ? (
               <div className="w-full max-w-lg">
-                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">Saved searches</p>
+                <p className="mb-1.5 text-[11px] font-medium text-muted-foreground/70">Saved searches</p>
                 <div className="flex flex-wrap gap-1.5">
                   {settings!.savedSearches.map((saved) => (
                     <span

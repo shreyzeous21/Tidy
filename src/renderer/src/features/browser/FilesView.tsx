@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUp, FolderInput, ListFilter, Loader2, SearchX, FolderOpen, FolderPlus, SquareTerminal, Eye, EyeOff, PencilLine } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUp, Clock, FolderInput, ListFilter, Loader2, SearchX, FolderOpen, FolderPlus, SquareTerminal, Eye, EyeOff, PencilLine } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,6 +26,7 @@ import { useActiveTab, useBrowserStore, useMetaStore } from '@/stores/browser-st
 import { useAppStore } from '@/stores/app-store'
 import { GetInfoDialog } from '@/components/dialogs/GetInfoDialog'
 import { ViewerDialog } from '@/components/dialogs/ViewerDialog'
+import { ChecksumDialog, TimelineDialog } from '@/components/dialogs/ToolDialogs'
 import type { FileEntry, FileKind } from '@shared/types/files'
 
 type DialogState =
@@ -36,6 +37,7 @@ type DialogState =
   | { kind: 'trash'; entries: FileEntry[] }
   | { kind: 'info'; path: string }
   | { kind: 'view'; path: string }
+  | { kind: 'checksum'; path: string }
 
 const KIND_FILTERS: Array<{ value: FileKind | 'all'; label: string }> = [
   { value: 'all', label: 'All types' },
@@ -77,6 +79,7 @@ export function FilesView() {
   const [selectedPaths, setSelectedPaths] = useState<ReadonlySet<string>>(new Set())
   const anchorRef = useRef<number | null>(null)
   const [dialog, setDialog] = useState<DialogState>({ kind: 'none' })
+  const [timelineOpen, setTimelineOpen] = useState(false)
 
   // Start at home.
   useEffect(() => {
@@ -429,7 +432,7 @@ export function FilesView() {
                   event.stopPropagation()
                   useBrowserStore.getState().closeTab(t.id)
                 }}
-                className="absolute -right-1 -top-1 hidden size-3.5 items-center justify-center rounded-full border border-border bg-background text-[9px] leading-none text-muted-foreground group-hover/tab:flex hover:text-foreground"
+                className="absolute -right-1 -top-1 hidden size-3.5 items-center justify-center rounded-full border border-border bg-background text-[11px] leading-none text-muted-foreground group-hover/tab:flex hover:text-foreground"
               >
                 ×
               </button>
@@ -505,6 +508,19 @@ export function FilesView() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Recent changes"
+              onClick={() => setTimelineOpen(true)}
+            >
+              <Clock className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Recent changes (timeline)</TooltipContent>
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon-sm" aria-label="New folder" onClick={() => void newFolder()}>
@@ -645,6 +661,8 @@ export function FilesView() {
       ) : null}
       {dialog.kind === 'info' ? <GetInfoDialog path={dialog.path} onClose={() => setDialog({ kind: 'none' })} /> : null}
       {dialog.kind === 'view' ? <ViewerDialog path={dialog.path} onClose={() => setDialog({ kind: 'none' })} /> : null}
+      {dialog.kind === 'checksum' ? <ChecksumDialog path={dialog.path} onClose={() => setDialog({ kind: 'none' })} /> : null}
+      {timelineOpen ? <TimelineDialog onClose={() => setTimelineOpen(false)} /> : null}
       {dialog.kind === 'trash' ? (
         <TrashConfirmDialog
           items={dialog.entries.map((e) => ({ path: e.path, size: e.size }))}

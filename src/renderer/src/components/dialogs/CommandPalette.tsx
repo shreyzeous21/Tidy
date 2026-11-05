@@ -263,14 +263,14 @@ export function CommandPalette() {
                   {item.icon}
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
                   {item.hint ? (
-                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground/70">{item.hint}</span>
+                    <span className="shrink-0 font-mono text-[10px] text-muted-foreground/70">{item.hint}</span>
                   ) : null}
                 </button>
               </li>
             ))
           )}
         </ul>
-        <div className="border-t border-border px-3 py-1.5 text-[10px] text-muted-foreground">
+        <div className="border-t border-border px-3 py-1.5 text-[11px] text-muted-foreground">
           ↑↓ navigate · ↵ run · esc close
         </div>
       </DialogContent>

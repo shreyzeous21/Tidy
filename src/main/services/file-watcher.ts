@@ -14,6 +14,9 @@ import path from 'node:path'
 const DEBOUNCE_MS = 400
 
 export class FileWatcher {
+  /** Bounded raw-change timeline for the most recent watch (shared). */
+  static timeline: Array<{ at: string; event: string; name: string }> = []
+
   private watcher: chokidar.FSWatcher | null = null
   private watchedPath: string | null = null
   private debounceTimer: NodeJS.Timeout | null = null
@@ -39,7 +42,17 @@ export class FileWatcher {
       })
       this.watchedPath = normalized
 
-      const notify = (): void => {
+      const notify = (event: 'add' | 'addDir' | 'unlink' | 'unlinkDir' | 'change', filePath?: string): void => {
+        // Raw events feed the change timeline (bounded per folder) before
+        // the debounced refetch signal goes out.
+        if (filePath && this.watchedPath) {
+          FileWatcher.timeline.push({
+            at: new Date().toISOString(),
+            event,
+            name: filePath
+          })
+          if (FileWatcher.timeline.length > 300) FileWatcher.timeline.splice(0, FileWatcher.timeline.length - 300)
+        }
         if (this.debounceTimer) clearTimeout(this.debounceTimer)
         this.debounceTimer = setTimeout(() => {
           this.debounceTimer = null
@@ -47,11 +60,11 @@ export class FileWatcher {
         }, DEBOUNCE_MS)
       }
 
-      this.watcher.on('add', notify)
-      this.watcher.on('addDir', notify)
-      this.watcher.on('unlink', notify)
-      this.watcher.on('unlinkDir', notify)
-      this.watcher.on('change', notify)
+      this.watcher.on('add', (p) => notify('add', p))
+      this.watcher.on('addDir', (p) => notify('addDir', p))
+      this.watcher.on('unlink', (p) => notify('unlink', p))
+      this.watcher.on('unlinkDir', (p) => notify('unlinkDir', p))
+      this.watcher.on('change', (p) => notify('change', p))
       this.watcher.on('error', (error) => {
         console.error('[tidy] watcher error:', error)
       })

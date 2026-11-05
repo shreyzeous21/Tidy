@@ -58,3 +58,63 @@ export interface ReadTextResult {
   /** True when content was capped at the read limit. */
   truncated: boolean
 }
+
+/** A broken symlink: target recorded for context. */
+export interface BrokenLink {
+  path: string
+  target: string
+}
+
+/** Groups of folders with byte-identical contents. */
+export interface DuplicateFolderGroup {
+  paths: string[]
+  fileCount: number
+  bytes: number
+}
+
+/** Images grouped by perceptual (dHash) similarity. */
+export interface SimilarImageGroup {
+  hash: string
+  images: Array<{ path: string; name: string; size: number }>
+}
+
+export interface RepoInfo {
+  path: string
+  name: string
+  branch: string
+  /** Changed (tracked) entries from git status --porcelain. */
+  modified: number
+  untracked: number
+  lastCommit: string
+  /** Size of the .git directory. */
+  gitBytes: number
+  truncated: boolean
+}
+
+export interface FolderCompareResult {
+  onlyInA: string[]
+  onlyInB: string[]
+  /** Relative paths present in both with different sizes. */
+  differing: string[]
+  identicalCount: number
+  truncated: boolean
+}
+
+export interface UsageSnapshot {
+  /** ISO date (day granularity). */
+  at: string
+  volumes: Array<{ path: string; used: number; total: number }>
+}
+
+export interface TimelineEvent {
+  at: string
+  event: 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir'
+  name: string
+}
+
+export interface CacheItem {
+  path: string
+  name: string
+  bytes: number
+  truncated: boolean
+}

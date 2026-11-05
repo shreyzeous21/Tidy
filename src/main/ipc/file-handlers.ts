@@ -1,4 +1,5 @@
-import { ipcMain } from 'electron'
+import { app, dialog, ipcMain, BrowserWindow } from 'electron'
+import os from 'node:os'
 import path from 'node:path'
 import fsp from 'node:fs/promises'
 import type {
@@ -36,7 +37,13 @@ import {
   trashDirectory
 } from '../services/filesystem'
 import { compressItems, extractArchive } from '../services/archives'
+import { FileWatcher } from '../services/file-watcher'
+import { findAppLeftovers, listLaunchAgents, listLoginItems } from '../services/macos-extras'
+import type { TimelineEvent } from '@shared/types/cleanup'
 import { appendHistory } from '../services/storage'
+import { recordUndo, getUndoRecord, markUndone } from '../services/usage-history'
+import crypto from 'node:crypto'
+import { createReadStream } from 'node:fs'
 import type { HandlerContext } from './context'
 
 /**
@@ -109,10 +116,16 @@ export function registerFileHandlers(ctx: HandlerContext): void {
       const oldName = path.basename(itemPath)
       assertWritable(dir, ctx.settings.approvedRoots)
       const finalPath = await renameEntry(dir, oldName, newName, overwrite === true)
-      await appendHistory({
+      const historyId = await appendHistory({
         type: 'rename',
         summary: `${oldName} → ${newName}`,
         count: 1
+      })
+      // Undo record: renames swap back cleanly (targets validated above).
+      await recordUndo(historyId, {
+        kind: 'rename',
+        from: finalPath,
+        to: itemPath
       })
       return { finalPath }
     })
@@ -179,7 +192,7 @@ export function registerFileHandlers(ctx: HandlerContext): void {
 
       if (movedCount > 0) {
         const firstName = path.basename(sources[0])
-        await appendHistory({
+        const historyId = await appendHistory({
           type: 'move',
           summary:
             movedCount === 1
@@ -187,6 +200,15 @@ export function registerFileHandlers(ctx: HandlerContext): void {
               : `${movedCount} items → ${dest}`,
           count: movedCount
         })
+        // Undo record: only successfully moved items (replaced targets are
+        // NOT recoverable, so those moves are excluded from undo).
+        const undoItems = results
+          .filter((r) => r.status === 'moved' || r.status === 'renamed')
+          .map((r) => ({ from: r.finalPath ?? '', to: r.sourcePath }))
+          .filter((item) => item.from && item.to)
+        if (undoItems.length > 0) {
+          await recordUndo(historyId, { kind: 'move', items: undoItems })
+        }
         await bumpRecentDestination(ctx, dest)
       }
       return results
@@ -423,6 +445,133 @@ export function registerFileHandlers(ctx: HandlerContext): void {
       ctx.watcher.watch(dir)
     })
   )
+
+ipcMain.handle('watch:timeline', () =>
+  guard(
+    async () =>
+      FileWatcher.timeline.slice(-200).map((entry) => ({
+        at: entry.at,
+        event: entry.event as TimelineEvent['event'],
+        name: entry.name
+      }))
+  )
+)
+
+ipcMain.handle('apps:leftovers', () =>
+  guard(async () => {
+    const installed = await listApplications()
+    return findAppLeftovers(installed, () => false)
+  })
+)
+
+ipcMain.handle('apps:login-items', () => guard(async () => listLoginItems()))
+ipcMain.handle('apps:launch-agents', () => guard(async () => listLaunchAgents()))
+
+ipcMain.handle('fs:checksum', (_event, inputPath: unknown, algorithm: unknown) =>
+  guard(async () => {
+    const filePath = normalizePath(inputPath, 'file path')
+    const algo = algorithm === 'md5' ? 'md5' : 'sha256'
+    return new Promise<{ algorithm: string; hex: string; bytes: number }>((resolve, reject) => {
+      const hash = crypto.createHash(algo)
+      const stream = createReadStream(filePath)
+      let bytes = 0
+      stream.on('data', (chunk: Buffer) => {
+        hash.update(chunk)
+        bytes += chunk.length
+      })
+      stream.on('error', (error) => reject(error))
+      stream.on('end', () => resolve({ algorithm: algo, hex: hash.digest('hex'), bytes }))
+    })
+  })
+)
+
+ipcMain.handle('fs:export-tree', async (_event, inputPath: unknown, format: unknown) =>
+  guard(async () => {
+    const root = normalizePath(inputPath, 'folder path')
+    const asJson = format === 'json'
+    const lines: string[] = []
+    const jsonTree: Record<string, unknown> = {}
+    let visited = 0
+    const walk = async (dir: string, prefix: string, node: Record<string, unknown>, depth: number): Promise<void> => {
+      if (visited > 20_000 || depth > 8) return
+      let dirents
+      try {
+        dirents = await fsp.readdir(dir, { withFileTypes: true })
+      } catch {
+        return
+      }
+      for (const dirent of dirents.sort((a, b) => a.name.localeCompare(b.name))) {
+        visited++
+        const full = path.join(dir, dirent.name)
+        if (asJson) {
+          const child: Record<string, unknown> = { type: dirent.isDirectory() ? 'dir' : 'file' }
+          node[dirent.name] = child
+          if (dirent.isDirectory()) await walk(full, `${prefix}${dirent.name}/`, child, depth + 1)
+        } else {
+          lines.push(`${prefix}${dirent.name}${dirent.isDirectory() ? '/' : ''}`)
+          if (dirent.isDirectory()) await walk(full, `${prefix}${dirent.name}/`, node, depth + 1)
+        }
+      }
+    }
+    await walk(root, '', jsonTree, 0)
+    const win = BrowserWindow.getFocusedWindow()
+    const save = win
+      ? await dialog.showSaveDialog(win, {
+          title: 'Export folder tree',
+          defaultPath: path.join(app.getPath('downloads'), `${path.basename(root)}-tree.${asJson ? 'json' : 'txt'}`)
+        })
+      : null
+    if (!save || save.canceled || !save.filePath) return null
+    const body = asJson ? JSON.stringify(jsonTree, null, 2) : lines.join('\n')
+    await fsp.writeFile(save.filePath, body, 'utf8')
+    return save.filePath
+  })
+)
+
+ipcMain.handle('trash:analyze', () =>
+  guard(async () => {
+    // macOS has no 'trash' app path — use the fixed home-relative location.
+    const trashDir = path.join(os.homedir(), '.Trash')
+    const entries = await listDirectory(trashDir)
+    return { path: trashDir, entries }
+  })
+)
+
+ipcMain.handle('volumes:usage', () =>
+  guard(async () => {
+    const { volumeUsageOf } = await import('../services/volumes-usage')
+    return volumeUsageOf()
+  })
+)
+
+ipcMain.handle('history:undo', (_event, id: unknown) =>
+  guard(async () => {
+    if (typeof id !== 'string' || id.length === 0 || id.length > 80) {
+      throw new AppError('INVALID_INPUT', 'Invalid operation id.')
+    }
+    const record = await getUndoRecord(id)
+    if (!record) throw new AppError('NOT_FOUND', 'This operation can no longer be undone.')
+    const { undo } = record
+    if (undo.kind === 'rename') {
+      assertWritable(path.dirname(undo.from), ctx.settings.approvedRoots)
+      assertWritable(path.dirname(undo.to), ctx.settings.approvedRoots)
+      await fsp.rename(undo.from, undo.to)
+    } else {
+      for (const item of undo.items) {
+        assertWritable(path.dirname(item.from), ctx.settings.approvedRoots)
+        assertWritable(path.dirname(item.to), ctx.settings.approvedRoots)
+        await fsp.mkdir(path.dirname(item.to), { recursive: true })
+        await fsp.rename(item.from, item.to)
+      }
+    }
+    await markUndone(id)
+    await appendHistory({
+      type: 'move',
+      summary: 'Undo of previous operation',
+      count: undo.kind === 'rename' ? 1 : undo.items.length
+    })
+  })
+)
 }
 
 async function bumpRecentDestination(ctx: HandlerContext, dest: string): Promise<void> {

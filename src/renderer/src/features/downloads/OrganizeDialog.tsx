@@ -281,7 +281,7 @@ export function OrganizeDialog({ files, homePath, downloadsPath, onClose }: Orga
                               <span className="truncate">{f.name}</span>
                               {override.destination && override.destination !== dest ? (
                                 <span
-                                  className="shrink-0 rounded bg-primary/10 px-1 text-[10px] text-primary"
+                                  className="shrink-0 rounded bg-primary/10 px-1 text-[11px] text-primary"
                                   title={`Organization rule → ${shortenHome(override.destination, homePath)}`}
                                 >
                                   via rule

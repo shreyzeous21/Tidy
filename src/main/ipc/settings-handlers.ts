@@ -3,7 +3,8 @@ import { app } from 'electron'
 import type { AppSettings } from '@shared/types/settings'
 import { guard } from '../utils/errors'
 import { normalizePath } from '../utils/path-validation'
-import { clearHistory, loadHistory, resetSettings } from '../services/storage'
+import { clearHistory, resetSettings } from '../services/storage'
+import { getHistoryWithUndo } from '../services/usage-history'
 import { mdfindAvailable } from '../services/search'
 import { homePath } from '../services/filesystem'
 import type { HandlerContext } from './context'
@@ -120,7 +121,7 @@ export function registerSettingsHandlers(ctx: HandlerContext): void {
     })
   )
 
-  ipcMain.handle('history:get', () => guard(() => loadHistory()))
+  ipcMain.handle('history:get', () => guard(() => getHistoryWithUndo()))
   ipcMain.handle('history:clear', () =>
     guard(async () => {
       await clearHistory()

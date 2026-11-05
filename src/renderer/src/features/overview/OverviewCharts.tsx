@@ -46,7 +46,7 @@ export function VolumeGauge({ volume }: { volume: VolumeUsage }) {
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-[20px] font-semibold tabular-nums">{usedPct}%</span>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">used</span>
+          <span className="text-[11px] text-muted-foreground">used</span>
         </div>
       </div>
       <div className="min-w-0 flex-1 space-y-1.5 text-xs">

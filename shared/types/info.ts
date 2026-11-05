@@ -79,3 +79,9 @@ export interface StorageOverview {
   categories: Array<{ category: string; bytes: number }>
   truncated: boolean
 }
+
+export interface LaunchAgentInfo {
+  path: string
+  label: string
+  program: string
+}

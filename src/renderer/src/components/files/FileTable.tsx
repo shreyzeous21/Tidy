@@ -46,7 +46,7 @@ interface FileTableProps {
   ariaLabel?: string
 }
 
-const ROW_HEIGHT = 34
+const ROW_HEIGHT = 36
 
 const COLUMNS_WITH_KIND: Array<{ key: SortKey | null; label: string; className: string }> = [
   { key: 'name', label: 'Name', className: 'pl-3' },
@@ -183,7 +183,7 @@ export function FileTable({
               <div
                 data-index={virtualRow.index}
                 className={cn(
-                  'flex h-[34px] items-center border-b border-border/40 text-[13px] outline-none transition-colors',
+                  'flex h-9 items-center border-b border-border/40 text-[13px] outline-none transition-colors',
                   selected ? 'bg-primary/10' : 'hover:bg-foreground/[0.035]',
                   dragOverDir === entry.path && 'bg-primary/15 ring-1 ring-inset ring-primary/40',
                   entry.isSymlink && 'opacity-70'

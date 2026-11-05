@@ -187,9 +187,9 @@ export default function App() {
     <TooltipProvider delayDuration={350}>
       <SidebarProvider className="h-svh">
         <AppSidebar />
-        <SidebarInset className="h-full overflow-hidden">
-          {/* Toolbar under the native macOS title bar. */}
-          <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-3">
+        <SidebarInset className="glass glass-raise h-full overflow-hidden bg-background/65">
+          {/* Toolbar under the native macOS title bar — frosted. */}
+          <header className="glass flex h-11 shrink-0 items-center gap-2 border-b border-border bg-background/60 px-3">
             <SidebarTrigger />
             <span className="text-[13px] font-semibold">{VIEW_TITLES[view]}</span>
           </header>
@@ -209,7 +209,7 @@ export default function App() {
 function StatusFooter() {
   const appInfo = useMetaStore((s) => s.appInfo)
   return (
-    <footer className="flex h-6 shrink-0 items-center justify-between border-t border-border px-3 text-[11px] text-muted-foreground">
+    <footer className="glass flex h-6 shrink-0 items-center justify-between border-t border-border bg-background/60 px-3 text-[11px] text-muted-foreground">
       <span>Tidy records only actions taken inside the app.</span>
       <span>{appInfo ? `v${appInfo.versions.app} · Electron ${appInfo.versions.electron}` : ''}</span>
     </footer>

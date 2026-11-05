@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { app, BrowserWindow, Menu } from 'electron'
+import { app, ipcMain, nativeTheme, BrowserWindow, Menu } from 'electron'
 
 import { FileWatcher, VolumeWatcher } from './services/file-watcher'
 import { CancelRegistry } from './services/cleanup'
@@ -43,7 +43,9 @@ function createWindow(): BrowserWindow {
     // Native macOS title bar: traffic lights + "Tidy" title, content below —
     // the standard look other Mac apps use.
     title: 'Tidy',
-    backgroundColor: '#f5f5f4',
+    // Glass themes: the frosted layers in CSS blur this native vibrancy.
+    vibrancy: 'under-window',
+    backgroundColor: '#00000000',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -109,6 +111,14 @@ if (!gotLock) {
 
     buildMenu()
     createWindow()
+
+    // Keep the native vibrancy material in step with the in-app theme,
+    // so Light Glass / Dark Glass blur the right thing.
+    ipcMain.handle('theme:sync', (_event, preference: unknown) => {
+      if (preference === 'light' || preference === 'dark' || preference === 'system') {
+        nativeTheme.themeSource = preference
+      }
+    })
 
     // React to external drives being mounted/unmounted.
     volumeWatcher = new VolumeWatcher(() => {

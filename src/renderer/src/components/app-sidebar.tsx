@@ -90,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 />
                 <span className="flex min-w-0 flex-col gap-1 leading-none group-data-[collapsible=icon]:hidden">
                   <span className="truncate text-[15px] font-semibold">Tidy</span>
-                  <span className="truncate text-[11px] font-normal text-muted-foreground">
+                  <span className="truncate text-[11px] font-normal text-sidebar-foreground/60">
                     Clean. Organize. Optimize.
                   </span>
                 </span>
@@ -116,7 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <span className="flex flex-1 items-center justify-between">
                         {label}
                         {shortcut ? (
-                          <span className="pr-1 text-[11px] font-normal text-muted-foreground/70 group-data-[collapsible=icon]:hidden">
+                          <span className="pr-1 text-[11px] font-normal text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
                             {shortcut}
                           </span>
                         ) : null}
@@ -134,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <HardwareCard />
       </div>
 
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border/60">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -147,7 +147,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="px-2 pb-1.5 text-[11px] leading-tight text-muted-foreground group-data-[collapsible=icon]:hidden">
+        <div className="px-2 pb-1.5 flex gap-1 text-[11px] leading-tight text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">
           <span className="block truncate" title={watchedDir ?? undefined}>
             {watchedDir ? `Live: ${shortenHome(watchedDir, homePath)}` : 'Idle'}
           </span>

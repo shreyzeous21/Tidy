@@ -181,6 +181,9 @@ export interface FileManagerAPI {
   /** Hardware summary for the sidebar card (model, chip, cores, memory, OS). */
   getSystemInfo(): Promise<ApiResult<SystemInfo>>
 
+  /** Sync the OS appearance (vibrancy material) with the in-app theme. */
+  themeSync(preference: 'system' | 'light' | 'dark'): Promise<ApiResult<void>>
+
   // Permissions (first-run onboarding)
   /** Current macOS permission states, for the setup flow. */
   getPermissionStatuses(): Promise<ApiResult<PermissionStatus[]>>

@@ -4,19 +4,20 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.985 0.002 90);
-  --foreground: oklch(0.2 0.01 90);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.01 90);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.01 90);
+  /* Light Glass — frosted white over native vibrancy */
+  --background: oklch(0.99 0.002 90 / 38%);
+  --foreground: oklch(0.22 0.01 90);
+  --card: oklch(1 0 0 / 58%);
+  --card-foreground: oklch(0.22 0.01 90);
+  --popover: oklch(1 0 0 / 72%);
+  --popover-foreground: oklch(0.22 0.01 90);
   --primary: oklch(0.52 0.09 220);
   --primary-foreground: oklch(0.985 0.002 90);
-  --secondary: oklch(0.955 0.003 90);
+  --secondary: oklch(1 0 0 / 50%);
   --secondary-foreground: oklch(0.28 0.01 90);
-  --muted: oklch(0.955 0.003 90);
-  --muted-foreground: oklch(0.52 0.012 90);
-  --accent: oklch(0.94 0.005 220);
+  --muted: oklch(1 0 0 / 42%);
+  --muted-foreground: oklch(0.42 0.012 90);
+  --accent: oklch(1 0 0 / 55%);
   --accent-foreground: oklch(0.28 0.01 90);
   --destructive: oklch(0.58 0.21 27);
   --destructive-foreground: oklch(0.985 0.002 90);
@@ -43,20 +44,21 @@
 }
 
 .dark {
-  --background: oklch(0.185 0.008 260);
-  --foreground: oklch(0.93 0.004 260);
-  --card: oklch(0.225 0.009 260);
-  --card-foreground: oklch(0.93 0.004 260);
-  --popover: oklch(0.235 0.01 260);
-  --popover-foreground: oklch(0.93 0.004 260);
+  /* Dark Glass — smoky translucent over native vibrancy */
+  --background: oklch(0.19 0.008 260 / 38%);
+  --foreground: oklch(0.94 0.004 260);
+  --card: oklch(0.24 0.009 260 / 52%);
+  --card-foreground: oklch(0.94 0.004 260);
+  --popover: oklch(0.26 0.01 260 / 68%);
+  --popover-foreground: oklch(0.94 0.004 260);
   --primary: oklch(0.68 0.1 220);
   --primary-foreground: oklch(0.16 0.01 260);
-  --secondary: oklch(0.27 0.01 260);
-  --secondary-foreground: oklch(0.93 0.004 260);
-  --muted: oklch(0.27 0.01 260);
-  --muted-foreground: oklch(0.63 0.012 260);
-  --accent: oklch(0.3 0.02 230);
-  --accent-foreground: oklch(0.93 0.004 260);
+  --secondary: oklch(1 0 0 / 7%);
+  --secondary-foreground: oklch(0.94 0.004 260);
+  --muted: oklch(1 0 0 / 6%);
+  --muted-foreground: oklch(0.68 0.012 260);
+  --accent: oklch(1 0 0 / 10%);
+  --accent-foreground: oklch(0.94 0.004 260);
   --destructive: oklch(0.62 0.19 27);
   --destructive-foreground: oklch(0.93 0.004 260);
   --border: oklch(0.3 0.012 260);
@@ -124,10 +126,39 @@
     height: 100%;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    /* Transparent over the native vibrancy layer — the frosted tokens do the glass. */
+    background: transparent;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
     /* The window is a fixed app frame — disable overscroll bounce. */
     overscroll-behavior: none;
+  }
+  /* Frosted chrome layer. Use with a translucent --background style token. */
+  .glass {
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  /* Sidebar-grade glass: deeper blur for the black smoked layer. */
+  .glass-strong {
+    -webkit-backdrop-filter: saturate(190%) blur(48px);
+    backdrop-filter: saturate(190%) blur(48px);
+  }
+  /* Dark Glass: soft reflection along the top edge of raised panels. */
+  .dark .glass-raise {
+    box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 8%), var(--glass-shadow);
+  }
+  :root .glass-raise {
+    box-shadow: var(--glass-shadow);
+  }
+  /* Every Radix portal surface (menus, popovers, selects, tooltips). */
+  [data-radix-popper-content-wrapper] > * {
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  /* Sonner toasts */
+  [data-sonner-toast] {
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
   }
   /* macOS-like: text isn't a free-for-all selection target in chrome. */
   button,

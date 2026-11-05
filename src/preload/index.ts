@@ -124,6 +124,7 @@ const api: FileManagerAPI = {
   onScanProgress: (callback) => {
     progressListener = callback
   },
+  themeSync: (preference) => invoke('theme:sync', preference),
   onVolumesChanged: (callback) => subscribe('volumes:changed', () => callback())
 }
 

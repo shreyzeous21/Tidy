@@ -101,6 +101,12 @@ export function applyTheme(preference: ThemePreference): void {
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   const dark = preference === 'dark' || (preference === 'system' && systemDark)
   root.classList.toggle('dark', dark)
+  // Keep the native vibrancy material in the same appearance.
+  try {
+    void window.tidy?.themeSync(preference)
+  } catch {
+    // API unavailable outside Electron — theme class still applies.
+  }
 }
 
 /** React to OS appearance changes while following the system setting. */
